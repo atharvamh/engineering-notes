@@ -305,7 +305,7 @@
   <div class="cover">
     <div class="cover-label">Study Notes — Systems Design</div>
     <h1>Redis Internals</h1>
-    <p>A discussion-driven breakdown of how Redis works under the hood — threading model, data structures, persistence, and where to go next.</p>
+    <p>A discussion-driven breakdown of how Redis works under the hood — threading model, data structures, persistence, replication, clustering, and eviction.</p>
     <div class="cover-meta">
       <div class="cover-meta-item"><span>Topics</span>11 Sections</div>
       <div class="cover-meta-item"><span>Date</span>June 2026</div>
@@ -322,6 +322,7 @@
         <li>Redis as a Data Structure Server</li>
         <li>Single-Threaded Execution Model</li>
         <li>Network I/O Threading (Redis 6+)</li>
+        <li>Event Loop Internals &amp; Client Buffers</li>
         <li>Data Structures &amp; Memory Encoding</li>
         <li>Persistence — RDB &amp; AOF</li>
         <li>Replication — Full &amp; Partial Sync</li>
@@ -329,7 +330,6 @@
         <li>Redis Cluster &amp; Hash Slots</li>
         <li>Eviction Policies</li>
         <li>Quorum &amp; Distributed Systems</li>
-        <li>Knowledge Gaps &amp; What's Next</li>
       </ol>
     </div>
 
@@ -438,10 +438,125 @@ Main Thread assigns responses back to I/O threads</pre>
       <p>Because execution being single-threaded is what preserves atomicity guarantees. Parallelizing execution would require locks on every shared data structure, trading simplicity and correctness for marginal CPU gains on a workload that was never CPU-bound.</p>
     </div>
 
-    <!-- Section 4 -->
+
+    <!-- Section 4 — Event Loop Internals -->
     <div class="section">
       <div class="section-header">
         <div class="section-num">04 —</div>
+        <h2>Event Loop Internals — ae &amp; Per-Client Buffers</h2>
+      </div>
+
+      <p>Redis implements its own event loop called <strong>ae</strong> (async events) in <code>ae.c</code>. It is a thin abstraction over the OS-level I/O multiplexing primitive — <code>epoll</code> on Linux, <code>kqueue</code> on macOS. Two categories of events run on the same loop.</p>
+
+      <table>
+        <thead>
+          <tr><th>Event type</th><th>What triggers it</th><th>Examples</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>File events</td><td>A socket fd becomes readable or writable</td><td>Client sends command, response ready to flush</td></tr>
+          <tr><td>Time events</td><td>A timer fires</td><td>Active key expiry, replication heartbeat, cluster gossip</td></tr>
+        </tbody>
+      </table>
+
+      <h3>The core loop</h3>
+      <p>The loop is interrupt-driven — not polling at a fixed frequency. It blocks at <code>epoll_wait()</code> until the kernel signals that something is ready. No client activity means zero CPU burn.</p>
+
+      <pre>while (running) {
+    epoll_wait()          // block until kernel signals ready fds
+    aeProcessFileEvents() // dispatch readable/writable handlers
+    aeProcessTimeEvents() // run any due timers
+}</pre>
+
+      <p><code>epoll_wait()</code> is O(1) per event — the kernel does not scan all watched file descriptors. It only returns the ones that are actually ready. This is why Redis can watch thousands of connections without degrading throughput.</p>
+
+      <h3>Why buffers exist — the timing mismatch problem</h3>
+      <p>The network and Redis do not operate at the same speed. A client can send a partial command across multiple TCP segments. Redis can have a response ready before the socket is writable. Buffers are the per-client holding zones that decouple these timing mismatches. Every connected client gets its own read buffer and write buffer.</p>
+
+      <h3>Read buffer — input side</h3>
+      <p>When <code>epoll_wait</code> signals a fd is readable, Redis calls <code>read()</code> on the socket. TCP does not guarantee whole messages arrive together — a client may send a partial RESP command across multiple segments. Redis accumulates bytes into a <strong>per-client read buffer</strong> until the parser finds a complete command.</p>
+
+      <pre>Client sends across two TCP segments:
+  Segment 1: "*2
+$3
+GET
+"
+  Segment 2: "$5
+hello
+"
+
+Read buffer accumulates both → parser finds complete command → execute
+Consumed bytes removed from buffer front → partial bytes wait at back</pre>
+
+      <div class="key-point">
+        <strong>The read buffer is a sliding window.</strong> Bytes arrive, the RESP parser consumes complete commands off the front, and incomplete data waits at the back for more bytes. The parser never blocks — if it can't find a complete command, it returns and waits for the next readable event.
+      </div>
+
+      <h3>Write buffer — output side</h3>
+      <p>When command execution completes, the response is ready — but the socket may not be writable yet. The kernel's send buffer might be full if the client is slow to consume. Redis pushes the response into a <strong>per-client write buffer</strong> and waits for <code>epoll</code> to signal the fd is writable.</p>
+
+      <pre>Command executes → response built → pushed to write buffer
+                                          │
+                              epoll signals fd writable
+                                          │
+                              writeToClient() drains buffer
+                                          │
+                              bytes → kernel socket send buffer
+                                          │
+                              kernel delivers bytes to client</pre>
+
+      <p>If the write buffer drains completely in one shot, Redis removes the writable listener for that fd — no point watching it. It re-registers only when there is something new to write. This keeps epoll's watched fd set lean.</p>
+
+      <h3>Full request lifecycle with buffers</h3>
+
+      <pre>① Client sends bytes over TCP
+        │
+② Kernel buffers in socket recv buffer, marks fd readable
+        │  epoll_wait() returns
+③ readQueryFromClient() reads bytes into READ BUFFER (per client)
+        │
+④ RESP parser scans read buffer
+   complete command? → extract and execute
+   partial command?  → wait for more bytes, return to loop
+        │
+⑤ Command executes against in-memory data (main thread, RAM)
+        │
+⑥ Response pushed to WRITE BUFFER (per client)
+        │  epoll signals fd writable
+⑦ writeToClient() drains write buffer → kernel socket send buffer
+        │
+⑧ Kernel delivers bytes to client</pre>
+
+      <div class="key-point">
+        <strong>Per-client isolation is the key guarantee.</strong> Every client has its own read and write buffer. A slow client reading its response does not stall command execution for anyone else — its response simply waits in its write buffer. The single-threaded loop never blocks on one client's I/O.
+      </div>
+
+      <h3>Backpressure — slow client protection</h3>
+      <p>If a client is extremely slow and its write buffer keeps growing unboundedly, Redis enforces hard limits. If the output buffer exceeds <code>client-output-buffer-limit</code>, Redis kills that client connection. A misbehaving or slow client cannot exhaust the server's memory.</p>
+
+      <h3>OS layer summary</h3>
+      <table>
+        <thead>
+          <tr><th>Syscall / primitive</th><th>Role in the event loop</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>epoll_create()</code></td><td>Creates the epoll instance — the kernel's watched fd registry</td></tr>
+          <tr><td><code>epoll_ctl()</code></td><td>Registers or removes fds from the watch list (add client on connect, remove on disconnect)</td></tr>
+          <tr><td><code>epoll_wait()</code></td><td>Blocks until one or more watched fds are ready — returns only ready fds, O(1)</td></tr>
+          <tr><td><code>read()</code></td><td>Reads bytes from socket into the per-client read buffer</td></tr>
+          <tr><td><code>write()</code></td><td>Writes bytes from the per-client write buffer into the kernel socket send buffer</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <div class="callout-title">One-line summary</div>
+        The read buffer decouples TCP fragmentation from command parsing. The write buffer decouples command execution from socket availability. Together they let a single-threaded event loop serve thousands of clients without ever blocking on I/O.
+      </div>
+    </div>
+
+    <!-- Section 5 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">05 —</div>
         <h2>Data Structures &amp; Memory Encoding</h2>
       </div>
 
@@ -485,10 +600,10 @@ Main Thread assigns responses back to I/O threads</pre>
       </div>
     </div>
 
-    <!-- Section 5 -->
+    <!-- Section 6 -->
     <div class="section">
       <div class="section-header">
-        <div class="section-num">05 —</div>
+        <div class="section-num">06 —</div>
         <h2>Persistence — RDB &amp; AOF</h2>
       </div>
 
@@ -548,10 +663,10 @@ HSET user:1 name "Alice"
       </div>
     </div>
 
-    <!-- Section 6 -->
+    <!-- Section 7 -->
     <div class="section">
       <div class="section-header">
-        <div class="section-num">06 —</div>
+        <div class="section-num">07 —</div>
         <h2>Replication — Full &amp; Partial Sync</h2>
       </div>
 
@@ -624,10 +739,10 @@ Backlog window:      5000 → 9000 (current)
       <p>When a replica is promoted to primary (via Sentinel failover), it gets a new replication ID. Replicas following the old primary now have a mismatched ID and cannot partial sync against the new primary — they must full sync. Redis 4+ addresses this with a <strong>secondary replication ID</strong>: the new primary remembers its old ID for a window, allowing already-caught-up replicas to partial sync even after a failover.</p>
     </div>
 
-    <!-- Section 7 -->
+    <!-- Section 8 -->
     <div class="section">
       <div class="section-header">
-        <div class="section-num">07 —</div>
+        <div class="section-num">08 —</div>
         <h2>Sentinel — Automated Failover</h2>
       </div>
 
@@ -684,10 +799,10 @@ Sentinel 3: unreachable         (not needed)</pre>
       </div>
     </div>
 
-    <!-- Section 8 -->
+    <!-- Section 9 -->
     <div class="section">
       <div class="section-header">
-        <div class="section-num">08 —</div>
+        <div class="section-num">09 —</div>
         <h2>Redis Cluster &amp; Hash Slots</h2>
       </div>
 
@@ -776,10 +891,10 @@ ASK    →  slot is mid-migration, try this node just for this one request</pre>
       <p>Single-node Redis never required thinking about where a key lives. Cluster makes locality a first-class design concern — which keys need to be co-located for multi-key operations (use hash tags), which are genuinely independent (let them distribute naturally). Design keys around access patterns, not just naming conventions.</p>
     </div>
 
-    <!-- Section 9 -->
+    <!-- Section 10 -->
     <div class="section">
       <div class="section-header">
-        <div class="section-num">09 —</div>
+        <div class="section-num">10 —</div>
         <h2>Eviction Policies</h2>
       </div>
 
@@ -857,10 +972,10 @@ Sample 5 random keys → evict the LRU among those 5</pre>
       </table>
     </div>
 
-    <!-- Section 10 -->
+    <!-- Section 11 -->
     <div class="section">
       <div class="section-header">
-        <div class="section-num">10 —</div>
+        <div class="section-num">11 —</div>
         <h2>Quorum &amp; Distributed Systems</h2>
       </div>
 
@@ -946,40 +1061,6 @@ Both sides halt. No leader. Cluster unavailable.</pre>
       <div class="callout">
         <div class="callout-title">Neither is wrong</div>
         CP vs AP is a business decision — can your system tolerate data divergence, or downtime? Financial systems typically choose CP. High-availability read-heavy systems often choose AP. The right answer depends on what failure mode hurts your users less.
-      </div>
-    </div>
-
-    <!-- Section 11 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">11 —</div>
-        <h2>Knowledge Gaps &amp; What's Next</h2>
-      </div>
-
-      <p>The sections above cover Redis from the core engine through distributed operation. The remaining topics are more situational but complete the picture.</p>
-
-      <div class="next-grid">
-        <div class="next-item">
-          <strong>Transactions &amp; Lua</strong>
-          <p>MULTI/EXEC atomicity semantics (no rollback). Why Lua scripts are the stronger alternative for compound atomic operations.</p>
-        </div>
-        <div class="next-item">
-          <strong>Streams &amp; Pub/Sub</strong>
-          <p>Redis as a message broker. Streams vs Kafka — where Redis Streams fits and where it doesn't. Consumer groups.</p>
-        </div>
-        <div class="next-item">
-          <strong>Memory Internals</strong>
-          <p>jemalloc as the allocator. Memory fragmentation, why it occurs operationally, and how to monitor it.</p>
-        </div>
-        <div class="next-item">
-          <strong>Keyspace Notifications</strong>
-          <p>Event-driven patterns via keyspace events. Subscribing to key expiry, set, delete events.</p>
-        </div>
-      </div>
-
-      <div class="callout" style="margin-top: 32px;">
-        <div class="callout-title">Where you stand</div>
-        You now have solid depth on the Redis core engine, persistence, replication, HA, sharding, eviction, and the distributed systems principles that underpin all of it. The remaining topics are feature-specific rather than foundational — pick them up as you encounter use cases that need them.
       </div>
     </div>
 
