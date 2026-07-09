@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fundamentals of Database Engineering Master Notes</title>
+    <title>Storage Internals and Indexing</title>
     <!-- Importing Inter for body/headings and IBM Plex Mono for technical/code elements -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +35,26 @@
             
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             --font-mono: 'IBM Plex Mono', Consolas, SFMono-Regular, "Liberation Mono", monospace;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.15s ease, transform 0.15s ease;
+        }
+        
+        .back-link:hover {
+            color: var(--accent-color);
+            transform: translateX(-3px);
         }
 
         * {
@@ -515,7 +535,8 @@
 <!-- Main Content Panel -->
 <div class="main-content">
     <header>
-        <h1>Fundamentals of Database Engineering Master Notes</h1>
+        <a class="back-link" href="index.html">&larr; Back to Index</a>
+        <h1>Storage Internals and Indexing</h1>
     </header>
 
     <!-- MODULE III SECTION -->
