@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentals of Database Engineering Master Notes</title>
+    <!-- Importing Inter for body/headings and IBM Plex Mono for technical/code elements -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0d1117;          /* Sleek GitHub dark canvas */
+            --sidebar-bg: #090d13;       /* Deeper dark for sidebar structure */
+            --text-color: #c9d1d9;       /* Highly legible light-gray text */
+            --text-bright: #f0f6fc;      /* Bright white for high emphasis */
+            --text-muted: #8b949e;       /* Soft gray for meta/secondary text */
+            --accent-color: #58a6ff;     /* Vivid electric blue for highlights */
+            --border-color: #21262d;     /* Minimalist low-contrast borders */
+            --code-bg: #161b22;          /* Pristine dark block for code syntax */
+            
+            /* Clean structural callout styles (minimalist border & gentle tint) */
+            --problem-bg: rgba(248, 81, 73, 0.05);       /* Deep crimson-tinted black */
+            --problem-border: #f85149;                   /* Vivid warning red */
+            --problem-text: #ff7b72;
+            
+            --solution-bg: rgba(46, 160, 67, 0.05);      /* Deep forest-tinted black */
+            --solution-border: #2ea043;                  /* Vivid success green */
+            --solution-text: #56d364;
+
+            --info-bg: rgba(56, 139, 253, 0.05);         /* Deep ocean-tinted black */
+            --info-border: #388bfd;                      /* Vivid info blue */
+            --info-text: #79c0ff;
+            
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-mono: 'IBM Plex Mono', Consolas, SFMono-Regular, "Liberation Mono", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-main);
+            font-size: 15px;
+            line-height: 1.75;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+        }
+
+        /* Widened Sticky Left Sidebar Navigation */
+        .sidebar-left {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 320px; /* Widened for a stronger anchor presence */
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 40px 28px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .sidebar-left h3 {
+            font-family: var(--font-main);
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-bright);
+            margin-top: 0;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-module {
+            margin-bottom: 28px;
+        }
+
+        .sidebar-module-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent-color);
+            margin-bottom: 12px;
+        }
+
+        .sidebar-left ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-left li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar-left a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            transition: color 0.15s ease, transform 0.15s ease;
+        }
+
+        .sidebar-left a:hover {
+            color: var(--accent-color);
+            transform: translateX(4px);
+        }
+
+        .sidebar-left .upcoming-item {
+            color: rgba(139, 148, 158, 0.45);
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        /* Centered & Fluid Main Content Panel */
+        .main-content {
+            margin-left: 320px;
+            width: calc(100% - 320px);
+            max-width: 1000px; /* Perfect readability constraint */
+            padding: 60px 64px;
+            transition: max-width 0.2s ease, width 0.2s ease;
+        }
+
+        header {
+            margin-bottom: 48px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.03em;
+            color: var(--text-bright);
+        }
+
+        /* Structural Parent Badges */
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-color);
+            background: rgba(88, 166, 255, 0.08);
+            border: 1px solid rgba(88, 166, 255, 0.15);
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        /* Standard Technical Note Sections */
+        section {
+            margin-bottom: 72px;
+            scroll-margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 21px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 8px;
+            margin-bottom: 24px;
+            color: var(--text-bright);
+            letter-spacing: -0.02em;
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            color: var(--text-bright);
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 18px;
+            color: var(--text-color);
+        }
+
+        ul, ol {
+            margin-top: 0;
+            margin-bottom: 18px;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* Adaptive Side-by-Side Grid-Pairs for problem/solution callouts on desktop */
+        .grid-pair {
+            margin: 20px 0;
+        }
+
+        /* Clean Card Layout for s4 Isolation Levels */
+        .isolation-list {
+            margin: 24px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .isolation-item {
+            background-color: var(--sidebar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 24px;
+            transition: border-color 0.2s ease;
+        }
+
+        .isolation-item:hover {
+            border-color: rgba(88, 166, 255, 0.3);
+        }
+
+        .isolation-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-bright);
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            font-family: var(--font-mono);
+        }
+
+        .isolation-desc {
+            margin-bottom: 0;
+            font-size: 14.5px;
+        }
+
+        /* Minimalist Callout Blocks with Consistent Spacing */
+        .block {
+            padding: 18px 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .block-title {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            display: block;
+        }
+
+        .block p {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: inherit;
+        }
+
+        .block p:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .block ul {
+            margin-top: 8px;
+            margin-bottom: 0;
+            color: inherit;
+        }
+
+        .block li {
+            margin-bottom: 6px;
+            color: inherit;
+        }
+
+        /* RED: Problems, Failures, Risks */
+        .problem {
+            background-color: var(--problem-bg);
+            border-left: 3px solid var(--problem-border);
+            color: var(--problem-text);
+        }
+
+        .problem .block-title {
+            color: var(--problem-border);
+        }
+
+        /* GREEN: Solutions, Corrective actions */
+        .solution {
+            background-color: var(--solution-bg);
+            border-left: 3px solid var(--solution-border);
+            color: var(--solution-text);
+        }
+
+        .solution .block-title {
+            color: var(--solution-border);
+        }
+
+        /* BLUE: Architectural, General Information, Caveats */
+        .info {
+            background-color: var(--info-bg);
+            border-left: 3px solid var(--info-border);
+            color: var(--info-text);
+        }
+
+        .info .block-title {
+            color: var(--info-border);
+        }
+
+        /* Graphics Layout Containers */
+        .visual-diagram-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin: 28px 0;
+        }
+
+        .diagram-card {
+            background-color: var(--sidebar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+        }
+
+        .diagram-card-title {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        /* Sleek Technical Data Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 28px 0;
+            font-size: 13.5px;
+            font-family: var(--font-main);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--sidebar-bg);
+            font-weight: 600;
+            color: var(--text-bright);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(22, 27, 34, 0.4);
+        }
+
+        /* Color States for Matrix Tables */
+        .status-occur {
+            color: var(--problem-text);
+            font-weight: 500;
+            font-family: var(--font-mono);
+        }
+
+        .status-prevent {
+            color: var(--solution-text);
+            font-weight: 500;
+            font-family: var(--font-mono);
+        }
+
+        /* Technical Code Elements */
+        code {
+            font-family: var(--font-mono);
+            background-color: var(--code-bg);
+            padding: 0.15em 0.4em;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            font-size: 13px;
+            color: #ff7b72;
+            font-weight: 400;
+        }
+
+        strong {
+            font-weight: 600;
+            color: var(--text-bright);
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-color);
+            margin: 18px 0;
+        }
+
+        pre code {
+            border: none;
+            padding: 0;
+            background: none;
+            color: inherit;
+        }
+
+        .footnote {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+
+        /* SCREEN WIDTH ADAPTATIONS & VIEWPORT GRID-ALIGNMENTS */
+
+        /* Responsive Breakpoints for Grid Layouts */
+        @media (min-width: 1200px) {
+            .grid-pair {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+            }
+            .grid-pair .block {
+                margin: 0 !important;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+            }
+            .visual-diagram-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .main-content {
+                max-width: 1150px; /* Beautifully expanded widescreen canvas */
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar-left {
+                width: 280px;
+            }
+            .main-content {
+                margin-left: 280px;
+                width: calc(100% - 280px);
+                padding: 48px 32px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar-left {
+                position: relative;
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 30px 24px;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Left Sidebar Navigation -->
+<div class="sidebar-left">
+    <h3>Notebook Index</h3>
+    
+<!-- MODULE 3 -->
+    <div class="sidebar-module">
+        <div class="sidebar-module-title">III. Storage Internals</div>
+        <ul>
+            <li><a href="#s9">s9. Table &amp; Heap Internals</a></li>
+            <li><a href="#s10">s10. B-Tree Indexing Internals</a></li>
+            <li><a href="#s11">s11. Clustered vs. Heap Tables</a></li>
+            <li><a href="#s12">s12. Row vs. Columnar Storage</a></li>
+        </ul>
+    </div>
+
+    <!-- MODULE 4 -->
+    <div class="sidebar-module">
+        <div class="sidebar-module-title">IV. Indexing &amp; Engine</div>
+        <ul>
+            <li class="upcoming-item">s13. Index Types (GIN, GiST) [Upcoming]</li>
+            <li class="upcoming-item">s14. Query Execution [Upcoming]</li>
+        </ul>
+    </div>
+</div>
+<!-- Main Content Panel -->
+<div class="main-content">
+    <header>
+        <h1>Fundamentals of Database Engineering Master Notes</h1>
+    </header>
+
+    <!-- MODULE III SECTION -->
+    
+    <!-- s9. TABLE & HEAP INTERNALS -->
+    <section id="s9">
+        <div class="module-badge">Module III: Storage Internals</div>
+        <h2>s9. Table &amp; Heap Internals (Pages &amp; Row IDs)</h2>
+        <p>A relational table is a logical abstraction. Under the hood, the DBMS represents tables as collections of physical files stored in persistent storage (disk). To read, write, or index this data efficiently, databases segment these files into fixed-size processing blocks called <strong>Pages</strong> and categorize rows inside structures called <strong>Heaps</strong>.</p>
+
+        <h3>📦 The Core Elements of Storage Architecture</h3>
+        
+        <div class="isolation-list">
+            <!-- Concept 1 -->
+            <div class="isolation-item">
+                <div class="isolation-title">1. The Page / Block (The I/O Atom)</div>
+                <p class="isolation-desc">A <strong>Page</strong> (or Block) is the absolute atomic unit of database disk I/O. Databases do not read or write individual rows from a drive; instead, they retrieve and commit entire Pages containing those rows (typically <code>8 KB</code> in PostgreSQL and <code>16 KB</code> in MySQL InnoDB). Even when executing a simple index query for a single row, the engine pulls the entire physical Page into its volatile memory buffer pool first.</p>
+            </div>
+
+            <!-- Concept 2 -->
+            <div class="isolation-item">
+                <div class="isolation-title">2. Heap Storage vs. Index-Organized Tables</div>
+                <p class="isolation-desc">A <strong>Heap</strong> is an unordered collection of physical pages where data rows (tuples) are written wherever there happens to be free space, completely ignoring physical sort orders. PostgreSQL tables are strict heaps. Conversely, InnoDB tables are <strong>Index-Organized</strong> (Clustered Indexes), meaning the table's records are physically ordered and stored right inside the primary key's leaf nodes.</p>
+            </div>
+
+            <!-- Concept 3 -->
+            <div class="isolation-item">
+                <div class="isolation-title">3. Physical Row IDs (ctid, TID, DB_ROW_ID)</div>
+                <p class="isolation-desc">Every row in a database has an internal, physical address representing its location on disk. This is the <strong>Row ID</strong> (often called <code>TID</code> or <code>ctid</code>). It is represented as a physical coordinate tuple: <code>(Page Number, Tuple Slot Offset)</code>. For instance, a Postgres <code>ctid</code> of <code>(4, 12)</code> means: "Go to Page 4, and read the 12th row pointer." Indexes store these physical Row IDs as leaf values to locate raw table values in a Heap.</p>
+            </div>
+        </div>
+
+        <div class="grid-pair">
+            <div class="block problem">
+                <span class="block-title">The Row Migration Problem (Write Amplification)</span>
+                <p>When you update a variable-length text field in a row (e.g., from <code>'Bob'</code> to a long string), the record expands. If the page is full, the modified row can no longer fit in its original slot.</p>
+                <p style="margin-top: 10px; margin-bottom: 0;"><strong>The Risk:</strong> If the database physically migrates the row to a new page, it risks breaking every existing index entry on other tables pointing to that row's old physical coordinate, forcing a massive, expensive update of all indexes.</p>
+            </div>
+
+            <div class="block solution">
+                <span class="block-title">The Indirection Layer: Slotted Page Architecture</span>
+                <p>Modern relational engines protect against this index fragmentation using a <strong>Slotted Page Layout</strong> inside every page block:</p>
+                <ul>
+                    <li><strong>Page Header:</strong> Metadata detailing page offsets.</li>
+                    <li><strong>Line Pointer Array (Slot Array):</strong> Grows <em>forward</em> (left-to-right). Each item is a light index pointing to the actual row offset.</li>
+                    <li><strong>Tuple Payloads:</strong> Row byte arrays written from the <em>end of the page backward</em> (right-to-left).</li>
+                </ul>
+                <p style="margin-top: 10px; margin-bottom: 0;"><strong>The Remedy:</strong> If a row moves inside a page, the engine only updates its local <strong>Line Pointer</strong>. Since the row's physical coordinates index remains unchanged, <strong>external index pointers pointing to the Row ID are never broken.</strong></p>
+            </div>
+        </div>
+
+        <!-- VISUALIZATION -->
+        <div class="block info" style="padding-bottom: 24px;">
+            <span class="block-title">Bidirectional Page Space Management</span>
+            <p>Here is a representation of the <strong>Slotted Page layout mechanics</strong>. Notice the distinct downward growth of the Line Pointer Slots and the corresponding upward growth of the Tuple payloads, leaving dynamic <strong>Free Space</strong> in the middle:</p>
+            
+            <div style="width: 100%; display: flex; justify-content: center; margin-top: 20px;">
+                <svg viewBox="0 0 520 400" width="100%" max-width="480px" height="100%" style="background-color: #090d13; border: 1.5px solid #21262d; border-radius: 6px; box-shadow: inset 0 0 12px rgba(0,0,0,0.6);" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <!-- Arrow Marker Definitions -->
+                        <marker id="ptr-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#58a6ff" />
+                        </marker>
+                        <marker id="growth-down" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                            <path d="M 0 2 L 5 8 L 10 2 z" fill="#79c0ff" />
+                        </marker>
+                        <marker id="growth-up" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                            <path d="M 0 8 L 5 2 L 10 8 z" fill="#56d364" />
+                        </marker>
+                    </defs>
+
+                    <!-- PAGE HEADER -->
+                    <rect x="15" y="15" width="490" height="45" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1.5" />
+                    <text x="30" y="42" fill="#f0f6fc" font-family="'Inter', sans-serif" font-size="12" font-weight="600" letter-spacing="0.05em">PAGE HEADER</text>
+                    <text x="140" y="41" fill="#8b949e" font-family="'Inter', sans-serif" font-size="10.5">(Page Metadata, Transaction Boundaries, Free Space Offset: 7000)</text>
+
+                    <!-- LINE POINTER SLOTS (Growing Downward) -->
+                    <g transform="translate(0, 5)">
+                        <!-- Slot 0 -->
+                        <rect x="25" y="70" width="470" height="28" rx="3" fill="#0d1117" stroke="rgba(88, 166, 255, 0.3)" stroke-width="1" />
+                        <rect x="33" y="76" width="55" height="16" rx="2" fill="rgba(88, 166, 255, 0.15)" />
+                        <text x="39" y="88" fill="#58a6ff" font-family="'IBM Plex Mono', monospace" font-size="9" font-weight="600">SLOT 0</text>
+                        <text x="100" y="87" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="9.5">Line Pointer (Offset 7600)</text>
+                        <path d="M 330 84 Q 440 84 450 310" fill="none" stroke="#58a6ff" stroke-width="1.25" stroke-dasharray="3,2" marker-end="url(#ptr-arrow)" />
+
+                        <!-- Slot 1 -->
+                        <rect x="25" y="103" width="470" height="28" rx="3" fill="#0d1117" stroke="rgba(88, 166, 255, 0.3)" stroke-width="1" />
+                        <rect x="33" y="109" width="55" height="16" rx="2" fill="rgba(88, 166, 255, 0.15)" />
+                        <text x="39" y="121" fill="#58a6ff" font-family="'IBM Plex Mono', monospace" font-size="9" font-weight="600">SLOT 1</text>
+                        <text x="100" y="120" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="9.5">Line Pointer (Offset 7300)</text>
+                        <path d="M 330 117 Q 405 117 415 272" fill="none" stroke="#58a6ff" stroke-width="1.25" stroke-dasharray="3,2" marker-end="url(#ptr-arrow)" />
+
+                        <!-- Slot 2 -->
+                        <rect x="25" y="136" width="470" height="28" rx="3" fill="#0d1117" stroke="rgba(88, 166, 255, 0.3)" stroke-width="1" />
+                        <rect x="33" y="142" width="55" height="16" rx="2" fill="rgba(88, 166, 255, 0.15)" />
+                        <text x="39" y="154" fill="#58a6ff" font-family="'IBM Plex Mono', monospace" font-size="9" font-weight="600">SLOT 2</text>
+                        <text x="100" y="153" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="9.5">Line Pointer (Offset 7000)</text>
+                        <path d="M 330 150 Q 370 150 380 238" fill="none" stroke="#58a6ff" stroke-width="1.25" stroke-dasharray="3,2" marker-end="url(#ptr-arrow)" />
+                    </g>
+
+                    <!-- FREE SPACE SECTOR -->
+                    <rect x="25" y="180" width="470" height="60" rx="3" fill="rgba(245, 166, 35, 0.02)" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4" />
+                    <text x="210" y="215" fill="#8b949e" font-family="'Inter', sans-serif" font-size="11" font-weight="600" letter-spacing="0.1em">&lt;--- FREE SPACE ---&gt;</text>
+                    
+                    <!-- Bidirectional Growth Annotations -->
+                    <path d="M 50 188 L 50 228" fill="none" stroke="#79c0ff" stroke-width="1.5" marker-end="url(#growth-down)" />
+                    <text x="62" y="205" fill="#79c0ff" font-family="'Inter', sans-serif" font-size="8.5" font-weight="500">Pointers expand down</text>
+
+                    <path d="M 470 232 L 470 192" fill="none" stroke="#56d364" stroke-width="1.5" marker-end="url(#growth-up)" />
+                    <text x="352" y="220" fill="#56d364" font-family="'Inter', sans-serif" font-size="8.5" font-weight="500">Row payloads grow up</text>
+
+                    <!-- TUPLE STORAGE REGION (Growing Upward) -->
+                    <g transform="translate(0, 0)">
+                        <!-- Row C -->
+                        <rect x="25" y="247" width="470" height="30" rx="3" fill="rgba(46, 160, 67, 0.08)" stroke="rgba(46, 160, 67, 0.3)" stroke-width="1" />
+                        <rect x="33" y="254" width="45" height="16" rx="2" fill="rgba(46, 160, 67, 0.15)" />
+                        <text x="39" y="266" fill="#56d364" font-family="'IBM Plex Mono', monospace" font-size="8.5" font-weight="600">ROW C</text>
+                        <text x="90" y="265" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="9">Offset 7000 (Length: 300 Bytes)</text>
+
+                        <!-- Row B -->
+                        <rect x="25" y="282" width="470" height="30" rx="3" fill="rgba(46, 160, 67, 0.08)" stroke="rgba(46, 160, 67, 0.3)" stroke-width="1" />
+                        <rect x="33" y="289" width="45" height="16" rx="2" fill="rgba(46, 160, 67, 0.15)" />
+                        <text x="39" y="301" fill="#56d364" font-family="'IBM Plex Mono', monospace" font-size="8.5" font-weight="600">ROW B</text>
+                        <text x="90" y="300" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="9">Offset 7300 (Length: 300 Bytes)</text>
+
+                        <!-- Row A -->
+                        <rect x="25" y="317" width="470" height="68" rx="3" fill="rgba(46, 160, 67, 0.08)" stroke="rgba(46, 160, 67, 0.3)" stroke-width="1" />
+                        <rect x="33" y="324" width="45" height="16" rx="2" fill="rgba(46, 160, 67, 0.15)" />
+                        <text x="39" y="336" fill="#56d364" font-family="'IBM Plex Mono', monospace" font-size="8.5" font-weight="600">ROW A</text>
+                        <text x="90" y="335" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="9">Offset 7600 (Length: 592 Bytes -> End of Block)</text>
+                        <!-- Secondary Data Columns Mock representation inside the row cell -->
+                        <text x="90" y="355" fill="#8b949e" font-family="'Inter', sans-serif" font-size="8.5">Tuple Data: [ id: 42 | username: 'alice' | avatar_url: '...' | sign_in_count: 104 ]</text>
+                    </g>
+                </svg>
+            </div>
+            <p style="margin-top: 16px; margin-bottom: 0;"><em>Engineering Note:</em> By utilizing this indirection pattern, if Row B is updated and shrinks or relocates inside the page, only the internal <strong>Slot 1 Offset</strong> needs updating. External index maps that refer directly to <code>(Page, Slot 1)</code> remain completely valid and untouched.</p>
+        </div>
+    </section>
+
+    <!-- s10. B-TREE INDEXING INTERNALS -->
+    <section id="s10">
+        <div class="module-badge">Module III: Storage Internals</div>
+        <h2>s10. B-Tree &amp; B+Tree Indexing Internals</h2>
+        <p>When a database queries a table without an index, it must execute a full table scan, pulling every single disk page into memory—resulting in severe disk I/O bottlenecks. <strong>Indexes</strong> solve this by building structured routing tables. In transactional systems, the standard index implementation is the <strong>B+Tree</strong>.</p>
+
+        <div class="block problem">
+            <span class="block-title">Why Databases Avoid Binary Search Trees (BST)</span>
+            <p>Why don't database engines use simple Binary Search Trees (BST) or Red-Black Trees? The reasons are purely physical:</p>
+            <ul>
+                <li><strong>Tree Depth &amp; Disk Spanning:</strong> A BST has a branching factor of at most $2$. To index $1,000,000$ rows, a BST requires a depth of $\log_2(1,000,000) \approx 20$ levels. Since each parent-child node connection in memory could point to a completely different page on disk, finding a single key would require $20$ random disk reads.</li>
+                <li><strong>Lack of Page Alignment:</strong> BST nodes are too small. They store only one key and two child pointers, failing to utilize the $8\text{ KB}$ physical page capacity, which leads to massive memory fragmentation.</li>
+            </ul>
+        </div>
+
+        <div class="block solution">
+            <span class="block-title">The Solution: The B+Tree (Shallow Depth &amp; High Fan-out)</span>
+            <p>A B+Tree is a self-balancing search tree designed to handle large page-aligned file blocks. It optimizes performance using two distinct node types:</p>
+            <ul>
+                <li><strong>Internal Nodes (Routing Guides):</strong> These contain only search keys and physical child pointers. They contain <em>no actual data or row pointer payloads</em>. This maximizes the branching factor (fan-out). If a routing page holds 500 keys, its branching factor is $B = 500$.</li>
+                <li><strong>Leaf Nodes (Data Anchors):</strong> These store the actual index key values along with their corresponding physical Heap <strong>Row IDs</strong> (or the actual table rows in a clustered InnoDB table).</li>
+            </ul>
+            <p style="margin-top: 10px; margin-bottom: 0;"><strong>The Advantage:</strong> By storing all record payloads in the leaf nodes, internal nodes stay lightweight, enabling a massive fan-out. A B+Tree with a branching factor of $B = 500$ can index millions of keys in just $3$ levels—reducing physical disk page lookups to a maximum of $3$ hops!</p>
+        </div>
+
+        <div class="block info">
+            <span class="block-title">Key Architectural Variations: B-Tree vs. B+Tree</span>
+            <p>Most relational engines deploy B+Trees instead of standard B-Trees. Here is why:</p>
+            <ul>
+                <li><strong>Standard B-Trees:</strong> Store physical records inside both internal and leaf nodes. This drastically decreases the space available for routing keys in internal nodes, increasing the tree depth and requiring more disk reads. Range queries are also slow because the engine must traverse up and down intermediate nodes.</li>
+                <li><strong>Modern B+Trees:</strong> Keep data exclusively in the leaf nodes and link all leaf nodes together sequentially via a <strong>doubly-linked list</strong>. When executing a range scan (e.g., <code>WHERE balance &gt; 100</code>), the engine traverses down to find the starting node, then scans horizontally through the linked leaves, completely bypassing tree traversal overhead.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- s11. CLUSTERED VS HEAP TABLES (UUID PERFORMANCE TRAP) -->
+    <section id="s11">
+        <div class="module-badge">Module III: Storage Internals</div>
+        <h2>s11. Clustered vs. Heap Tables (The UUID Write-Amplification Trap)</h2>
+        <p>A critical architectural fork in physical storage engine design is the choice between <strong>Heap-Based Storage</strong> (used natively by <strong>PostgreSQL</strong>) and <strong>Clustered Indexes / Index-Organized Tables</strong> (used natively by <strong>MySQL InnoDB</strong>). The choice of your table's Primary Key data structure (e.g., auto-incrementing integers vs. random UUIDs) has completely opposite physical performance implications depending on this underlying model.</p>
+
+        <h3>📊 Structural Architectural Comparison</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Storage Property</th>
+                    <th>Heap-Based Tables (PostgreSQL Model)</th>
+                    <th>Clustered-Index Tables (MySQL InnoDB Model)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Table Physical Ordering</strong></td>
+                    <td><strong>Unordered.</strong> Data is written to pages sequentially based solely on where free physical space resides.</td>
+                    <td><strong>Strictly Sorted.</strong> Row payload blocks are organized physically on disk in sorted order of the Primary Key.</td>
+                </tr>
+                <tr>
+                    <td><strong>Primary Key Leaf Value</strong></td>
+                    <td>Contains the <strong>Row ID (ctid / TID)</strong> — a physical address coordinate pointing to the heap file.</td>
+                    <td>Contains the <strong>actual complete row data</strong> (all table columns are embedded inside the tree).</td>
+                    </tr>
+                <tr>
+                    <td><strong>Secondary Index Leaf Value</strong></td>
+                    <td>Contains the physical <strong>Row ID (ctid / TID)</strong>. Directly reads target table page on lookup.</td>
+                    <td>Contains the <strong>Primary Key value</strong> (not a physical disk offset). Forces a double-lookup to fetch row data.</td>
+                </tr>
+                <tr>
+                    <td><strong>Row Address Stability</strong></td>
+                    <td><strong>Volatile.</strong> If a row moves inside a page or migrates, its physical Row ID coordinate could theoretically shift.</td>
+                    <td><strong>Volatile.</strong> Rows physically move across database page blocks during index splits.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- GRAPHICAL LOOKUP REPRESENTATION -->
+        <h3>📌 Direct Lookups vs. Double Lookups (Visual Mapping)</h3>
+        <p>To better understand physical execution paths, let's visually trace how secondary index lookups resolve data in PostgreSQL's Heap model versus MySQL InnoDB's Clustered model:</p>
+
+        <div class="visual-diagram-container">
+            <!-- Postgres Diagram Card -->
+            <div class="diagram-card">
+                <div class="diagram-card-title">Figure A: PostgreSQL Heap Pointer Path (Direct Hop)</div>
+                <div style="width: 100%; display: flex; justify-content: center;">
+                    <svg viewBox="0 0 500 320" width="100%" height="100%" style="background-color: #090d13; border-radius: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#58a6ff" />
+                            </marker>
+                            <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#56d364" />
+                            </marker>
+                        </defs>
+                        <!-- PK INDEX -->
+                        <rect x="20" y="30" width="190" height="95" rx="4" fill="#161b22" stroke="#21262d" stroke-width="1.5" />
+                        <rect x="20" y="30" width="190" height="25" rx="4" fill="#1f2937" />
+                        <text x="30" y="47" fill="#58a6ff" font-family="'Inter', sans-serif" font-size="11" font-weight="600">PK INDEX (id)</text>
+                        <rect x="30" y="65" width="170" height="48" rx="2" fill="#0d1117" stroke="#21262d" />
+                        <text x="40" y="80" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="10">Key: 42</text>
+                        <text x="40" y="98" fill="#79c0ff" font-family="'IBM Plex Mono', monospace" font-size="10">Pointer: (Page 5, Slot 2)</text>
+
+                        <!-- SECONDARY INDEX -->
+                        <rect x="20" y="155" width="190" height="95" rx="4" fill="#161b22" stroke="#21262d" stroke-width="1.5" />
+                        <rect x="20" y="155" width="190" height="25" rx="4" fill="#1f2937" />
+                        <text x="30" y="172" fill="#58a6ff" font-family="'Inter', sans-serif" font-size="11" font-weight="600">SEC. INDEX (email)</text>
+                        <rect x="30" y="190" width="170" height="48" rx="2" fill="#0d1117" stroke="#21262d" />
+                        <text x="40" y="205" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="10">Key: 'alice@..'</text>
+                        <text x="40" y="223" fill="#79c0ff" font-family="'IBM Plex Mono', monospace" font-size="10">Pointer: (Page 5, Slot 2)</text>
+
+                        <!-- PHYSICAL HEAP PAGE -->
+                        <rect x="250" y="30" width="230" height="260" rx="4" fill="#161b22" stroke="#21262d" stroke-width="1.5" />
+                        <rect x="250" y="30" width="230" height="25" rx="4" fill="#21262d" />
+                        <text x="260" y="47" fill="#f0f6fc" font-family="'Inter', sans-serif" font-size="11" font-weight="600">PHYSICAL HEAP PAGE 5</text>
+                        
+                        <!-- Header -->
+                        <rect x="260" y="65" width="210" height="20" rx="2" fill="#0d1117" stroke="#21262d" />
+                        <text x="270" y="78" fill="#8b949e" font-family="'Inter', sans-serif" font-size="8.5" font-weight="500">Page Header (offsets, free space)</text>
+                        
+                        <!-- Slot Array -->
+                        <rect x="260" y="95" width="105" height="75" rx="2" fill="#0d1117" stroke="#21262d" />
+                        <text x="265" y="108" fill="#8b949e" font-family="'Inter', sans-serif" font-size="9" font-weight="600">SLOT ARRAY</text>
+                        <text x="265" y="122" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="8.5">Slot 1: Offset</text>
+                        <rect x="262" y="128" width="101" height="15" fill="rgba(88, 166, 255, 0.15)" />
+                        <text x="265" y="139" fill="#79c0ff" font-family="'IBM Plex Mono', monospace" font-size="8.5" font-weight="600">Slot 2: Offset -+</text>
+                        <text x="265" y="156" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="8.5">Slot 3: Empty</text>
+
+                        <!-- Free space label -->
+                        <text x="375" y="135" fill="rgba(139, 148, 158, 0.4)" font-family="'Inter', sans-serif" font-size="9" font-style="italic">Free Space</text>
+                        
+                        <!-- Tuples at the bottom -->
+                        <rect x="260" y="180" width="210" height="100" rx="2" fill="#0d1117" stroke="#21262d" />
+                        <text x="265" y="194" fill="#8b949e" font-family="'Inter', sans-serif" font-size="9" font-weight="600">TUPLE DATA STORAGE</text>
+                        
+                        <!-- Tuple 2 -->
+                        <rect x="265" y="202" width="200" height="42" rx="2" fill="rgba(46, 160, 67, 0.1)" stroke="#2ea043" />
+                        <text x="270" y="215" fill="#56d364" font-family="'IBM Plex Mono', monospace" font-size="8.5" font-weight="600">Tuple 2 (Payload)</text>
+                        <text x="270" y="231" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="8">id: 42 | email: 'alice@..' | bal: $100</text>
+
+                        <text x="265" y="262" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="8.5">Tuple 1: [Other Row Data]</text>
+
+                        <!-- Paths -->
+                        <!-- PK pointer path to Slot 2 -->
+                        <path d="M 210 93 Q 235 93 255 132" fill="none" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow)" />
+                        
+                        <!-- Sec Index pointer path to Slot 2 -->
+                        <path d="M 210 218 Q 240 218 255 138" fill="none" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow)" />
+
+                        <!-- Indirection path Slot 2 to Tuple 2 payload -->
+                        <path d="M 365 134 C 410 134 400 175 390 198" fill="none" stroke="#56d364" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow-green)" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- InnoDB Diagram Card -->
+            <div class="diagram-card">
+                <div class="diagram-card-title">Figure B: InnoDB Clustered Table Path (Double Lookup)</div>
+                <div style="width: 100%; display: flex; justify-content: center;">
+                    <svg viewBox="0 0 500 320" width="100%" height="100%" style="background-color: #090d13; border-radius: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#58a6ff" />
+                            </marker>
+                            <marker id="arrow-yellow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffcd56" />
+                            </marker>
+                        </defs>
+                        <!-- SECONDARY INDEX (email) -->
+                        <rect x="20" y="30" width="190" height="110" rx="4" fill="#161b22" stroke="#21262d" stroke-width="1.5" />
+                        <rect x="20" y="30" width="190" height="25" rx="4" fill="#1f2937" />
+                        <text x="30" y="47" fill="#8b949e" font-family="'Inter', sans-serif" font-size="11" font-weight="600">SECONDARY INDEX</text>
+                        <rect x="30" y="65" width="170" height="60" rx="2" fill="#0d1117" stroke="#21262d" />
+                        <text x="36" y="80" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="8.5">Key: 'alice@example.com'</text>
+                        <!-- Highlighted logical key -->
+                        <rect x="34" y="90" width="162" height="28" fill="rgba(255, 205, 86, 0.1)" stroke="#ffcd56" stroke-width="1" rx="2" />
+                        <text x="40" y="108" fill="#ffcd56" font-family="'IBM Plex Mono', monospace" font-size="10" font-weight="600">PK VALUE: 42</text>
+
+                        <!-- CLUSTERED INDEX / TABLE payload -->
+                        <rect x="250" y="30" width="230" height="260" rx="4" fill="#161b22" stroke="#21262d" stroke-width="1.5" />
+                        <rect x="250" y="30" width="230" height="25" rx="4" fill="#21262d" />
+                        <text x="260" y="47" fill="#f0f6fc" font-family="'Inter', sans-serif" font-size="11" font-weight="600">CLUSTERED INDEX (TABLE)</text>
+                        
+                        <!-- B+Tree Hierarchy Visualization -->
+                        <g stroke="#21262d" stroke-width="1.5">
+                            <circle cx="365" cy="75" r="12" fill="#1f2937" />
+                            <circle cx="325" cy="115" r="10" fill="#1f2937" />
+                            <circle cx="405" cy="115" r="10" fill="#1f2937" />
+                            <line x1="355" y1="83" x2="335" y2="107" />
+                            <line x1="375" y1="83" x2="395" y2="107" />
+                        </g>
+                        <text x="355" y="78" fill="#8b949e" font-family="'Inter', sans-serif" font-size="8.5" font-weight="600">Root</text>
+                        
+                        <!-- Traversal path -->
+                        <path d="M 365 75 L 325 115" fill="none" stroke="#58a6ff" stroke-width="2" />
+                        <path d="M 325 115 L 315 150" fill="none" stroke="#58a6ff" stroke-width="2" />
+
+                        <!-- Leaf Node Clustered Payload Block -->
+                        <rect x="260" y="155" width="210" height="120" rx="2" fill="#0d1117" stroke="#21262d" />
+                        <rect x="260" y="155" width="210" height="20" rx="2" fill="#1f2937" />
+                        <text x="265" y="169" fill="#58a6ff" font-family="'Inter', sans-serif" font-size="8.5" font-weight="600">Leaf Page Block (sorted by PK)</text>
+
+                        <!-- Entry for PK 42 -->
+                        <rect x="265" y="185" width="200" height="82" rx="2" fill="rgba(46, 160, 67, 0.1)" stroke="#2ea043" stroke-width="1" />
+                        <text x="272" y="200" fill="#56d364" font-family="'IBM Plex Mono', monospace" font-size="9" font-weight="700">Key: 42 [Actual Row]</text>
+                        <text x="272" y="217" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="8.5">email: 'alice@example.com'</text>
+                        <text x="272" y="232" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="8.5">name: 'Alice'</text>
+                        <text x="272" y="247" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="8.5">balance: $100</text>
+
+                        <!-- Traversal Arrow pointing to Leaf payload -->
+                        <circle cx="315" cy="155" r="3" fill="#58a6ff" />
+                        <path d="M 315 155 L 315 180" fill="none" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow-blue)" />
+
+                        <!-- Double Lookup logical jump path -->
+                        <path d="M 196 104 Q 230 104 250 83" fill="none" stroke="#ffcd56" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow-yellow)" />
+                        <text x="135" y="235" fill="#ffcd56" font-family="'Inter', sans-serif" font-size="9" font-style="italic">Re-traverses tree via PK</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-pair">
+            <div class="block problem">
+                <span class="block-title">The Problem: The Random UUID Clustered-Index Trap</span>
+                <p>When you insert records with completely random primary keys (such as a <strong>UUIDv4</strong>) into an InnoDB table, you trigger catastrophic physical write problems:</p>
+                <ul>
+                    <li><strong>Continuous Page Splits:</strong> Because UUIDv4 is completely unsorted, a new row must be written physically in the middle of a random table page on disk. If that targeted 16 KB page is full, the engine must split it, moving 50% of the rows (along with all column payloads) to a new page to clear space.</li>
+                    <li><strong>Heavy Random Disk Writes:</strong> Instead of writing sequentially to the physical end of the file, the engine must read random, uncached table pages into RAM, write the record, and flush the pages back to disk, causing disk-head thrashing.</li>
+                    <li><strong>Massive Secondary Indexes:</strong> Because InnoDB secondary indexes store the Primary Key value at their leaf level, if your PK is a wide, 36-character string UUID, your secondary indexes will explode in size, consuming precious RAM.</li>
+                </ul>
+            </div>
+
+            <div class="block solution">
+                <span class="block-title">The Solution: Sequential Keys &amp; Postgres Appends</span>
+                <p>To mitigate write bottlenecks, relational systems use two structural approaches:</p>
+                <ul>
+                    <li>
+                        <strong>1. Use Sequential Keys for Clustered Tables:</strong>
+                        <p style="margin-top: 4px; margin-bottom: 4px;">For engines like InnoDB, use auto-incrementing integers or sorted UUID formats like <strong>UUIDv7</strong> (which embeds a millisecond-precision timestamp at the beginning). This guarantees new inserts land sequentially at the end of the tree, eliminating page splits.</p>
+                    </li>
+                    <li>
+                        <strong>2. PostgreSQL's Natural Immunity (Heap Appends):</strong>
+                        <p style="margin-top: 4px; margin-bottom: 0;">Since Postgres is a heap-file system, inserting a random UUID is extremely fast—it simply appends the row to the active table page. Page splits still occur in the Primary Key B+Tree index, but because index leaf nodes only store light 6-byte <code>ctid</code> values (and not the entire row payload), index page splits are far less expensive than InnoDB table page splits.</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="block info">
+            <span class="block-title">The Secondary Index Double-Lookup Trade-off</span>
+            <p>Why do InnoDB secondary indexes store the Primary Key value rather than a direct physical Row ID address? Let's compare their physical pathways during queries:</p>
+            <ul>
+                <li><strong>PostgreSQL Direct Lookup Pathway:</strong>
+                    <br><code>Secondary Index (e.g., email) -> physical ctid (Page 5, Slot 2) -> Direct physical read of Page 5.</code>
+                    <br><em>The Performance Benefit:</em> Fast, single-hop reads on secondary queries.
+                    <br><em>The Drawback:</em> If Postgres updates a row and changes its physical location, every secondary index must be updated with the new <code>ctid</code>.
+                </li>
+                <li style="margin-top: 15px;"><strong>InnoDB Clustered Double-Lookup Pathway:</strong>
+                    <br><code>Secondary Index (e.g., email) -> Primary Key value ('user-123') -> Clustered B+Tree traversal -> Actual Row Payload.</code>
+                    <br><em>The Performance Benefit:</em> If a row moves physically on disk due to a page split, secondary indexes do not break because they point to the logical key, not the physical address.
+                    <br><em>The Drawback:</em> Every secondary index lookup requires a double-traversal of B+Trees, which hurts range scans and secondary queries.
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- NEW SECTION ADDED: s12. ROW VS COLUMNAR STORAGE -->
+    <section id="s12">
+        <div class="module-badge">Module III: Storage Internals</div>
+        <h2>s12. Row-Oriented vs. Columnar Storage (OLTP vs. OLAP)</h2>
+        <p>A table is logically a two-dimensional grid of rows and columns. However, physical storage media (like NVMe SSDs or HDDs) are strictly one-dimensional linear arrays of bytes. To store this table on disk, database systems must choose a serialization orientation: <strong>Row-Oriented</strong> (optimized for transactions) or <strong>Columnar</strong> (optimized for analytics).</p>
+
+        <div class="block info">
+            <span class="block-title">The Core Structural Difference</span>
+            <p>The difference lies entirely in how consecutive bytes are organized within the physical storage page:</p>
+            <ul>
+                <li><strong>Row-Oriented (OLTP):</strong> 1 page containing multiple entire rows. All columns belonging to a specific row are stored contiguously on disk: <code>[Row 1 Col A, Col B, Col C][Row 2 Col A, Col B, Col C]</code>.</li>
+                <li><strong>Columnar (OLAP):</strong> 1 page containing data for exactly 1 column across thousands of rows. The values for a single column are stored contiguously on disk: <code>Page A: [Row 1 Col A, Row 2 Col A, Row 3 Col A]</code> and <code>Page B: [Row 1 Col B, Row 2 Col B, Row 3 Col B]</code>.</li>
+            </ul>
+        </div>
+
+        <h3>📌 Visualizing Physical Disk Serialization</h3>
+        <p>Let's map out how a simple dataset is physically laid out on disk blocks under both architectures. Notice how the reading arrow must traverse physical sectors to resolve query requirements:</p>
+
+        <div class="visual-diagram-container">
+            <!-- Row-Oriented Physical Diagram -->
+            <div class="diagram-card">
+                <div class="diagram-card-title">Figure A: Row-Oriented Page (OLTP / Transactional)</div>
+                <div style="width: 100%; display: flex; justify-content: center;">
+                    <svg viewBox="0 0 500 280" width="100%" height="100%" style="background-color: #090d13; border-radius: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="io-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ff7b72" />
+                            </marker>
+                        </defs>
+                        <!-- PHYSICAL PAGE BLOCK -->
+                        <rect x="15" y="20" width="470" height="240" rx="4" fill="#161b22" stroke="#21262d" stroke-width="1.5" />
+                        <rect x="15" y="20" width="470" height="25" rx="4" fill="#21262d" />
+                        <text x="25" y="37" fill="#f0f6fc" font-family="'Inter', sans-serif" font-size="11" font-weight="600">PHYSICAL STORAGE BLOCK (8KB Page)</text>
+
+                        <!-- Row 1 container -->
+                        <rect x="30" y="60" width="440" height="55" rx="3" fill="#0d1117" stroke="#30363d" />
+                        <text x="40" y="74" fill="#58a6ff" font-family="'Inter', sans-serif" font-size="10" font-weight="600">ROW 1 (Contiguous Columns)</text>
+                        <!-- Columns R1 -->
+                        <rect x="40" y="80" width="80" height="25" rx="2" fill="rgba(88, 166, 255, 0.08)" stroke="#30363d" />
+                        <text x="45" y="96" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="8.5">ID: 1</text>
+
+                        <rect x="125" y="80" width="180" height="25" rx="2" fill="rgba(88, 166, 255, 0.08)" stroke="#30363d" />
+                        <text x="130" y="96" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="8.5">Email: 'alice@..'</text>
+
+                        <rect x="310" y="80" width="150" height="25" rx="2" fill="rgba(88, 166, 255, 0.08)" stroke="#30363d" />
+                        <text x="315" y="96" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="8.5">Bal: $100</text>
+
+                        <!-- Row 2 container -->
+                        <rect x="30" y="125" width="440" height="55" rx="3" fill="#0d1117" stroke="#30363d" />
+                        <text x="40" y="139" fill="#58a6ff" font-family="'Inter', sans-serif" font-size="10" font-weight="600">ROW 2 (Contiguous Columns)</text>
+                        <!-- Columns R2 -->
+                        <rect x="40" y="145" width="80" height="25" rx="2" fill="rgba(88, 166, 255, 0.08)" stroke="#30363d" />
+                        <text x="45" y="161" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="8.5">ID: 2</text>
+
+                        <rect x="125" y="145" width="180" height="25" rx="2" fill="rgba(88, 166, 255, 0.08)" stroke="#30363d" />
+                        <text x="130" y="161" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="8.5">Email: 'bob@..'</text>
+
+                        <rect x="310" y="145" width="150" height="25" rx="2" fill="rgba(88, 166, 255, 0.08)" stroke="#30363d" />
+                        <text x="315" y="161" fill="#c9d1d9" font-family="'IBM Plex Mono', monospace" font-size="8.5">Bal: $250</text>
+
+                        <!-- Aggregation Query Read Path Problem -->
+                        <path d="M 385 240 L 385 180" fill="none" stroke="#ff7b72" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#io-arrow)" />
+                        <path d="M 385 145 L 385 115" fill="none" stroke="#ff7b72" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#io-arrow)" />
+                        <text x="35" y="215" fill="#ff7b72" font-family="'Inter', sans-serif" font-size="10" font-weight="500">Query: SELECT SUM(balance)</text>
+                        <text x="35" y="230" fill="#ff7b72" font-family="'Inter', sans-serif" font-size="9" font-style="italic">Engine MUST load ID &amp; Email bytes into memory anyway!</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Columnar Physical Diagram -->
+            <div class="diagram-card">
+                <div class="diagram-card-title">Figure B: Columnar Files (OLAP / Analytical)</div>
+                <div style="width: 100%; display: flex; justify-content: center;">
+                    <svg viewBox="0 0 500 280" width="100%" height="100%" style="background-color: #090d13; border-radius: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="scan-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#56d364" />
+                            </marker>
+                        </defs>
+                        <!-- FILE A: EMAIL COLUMN -->
+                        <rect x="15" y="20" width="220" height="240" rx="4" fill="#161b22" stroke="#21262d" stroke-width="1.5" />
+                        <rect x="15" y="20" width="220" height="25" rx="4" fill="#21262d" />
+                        <text x="25" y="37" fill="#8b949e" font-family="'Inter', sans-serif" font-size="10" font-weight="600">PAGE A: EMAIL COLUMN</text>
+                        
+                        <rect x="25" y="60" width="200" height="190" rx="3" fill="#0d1117" stroke="#30363d" />
+                        <text x="35" y="76" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="9">Row 1: 'alice@example.com'</text>
+                        <text x="35" y="106" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="9">Row 2: 'bob@example.com'</text>
+                        <text x="35" y="136" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="9">Row 3: 'charlie@example..'</text>
+                        <text x="35" y="166" fill="#8b949e" font-family="'IBM Plex Mono', monospace" font-size="9">Row 4: 'dave@example.com'</text>
+                        <text x="35" y="220" fill="rgba(139, 148, 158, 0.3)" font-family="'Inter', sans-serif" font-size="10" font-style="italic">Unread: Bypassed entirely</text>
+
+                        <!-- FILE B: BALANCE COLUMN -->
+                        <rect x="265" y="20" width="220" height="240" rx="4" fill="rgba(35, 134, 54, 0.05)" stroke="#238636" stroke-width="1.5" />
+                        <rect x="265" y="20" width="220" height="25" rx="4" fill="#238636" />
+                        <text x="275" y="37" fill="#f0f6fc" font-family="'Inter', sans-serif" font-size="10" font-weight="600">PAGE B: BALANCE COLUMN</text>
+                        
+                        <rect x="275" y="60" width="200" height="190" rx="3" fill="#0d1117" stroke="#238636" />
+                        <rect x="280" y="68" width="190" height="110" rx="2" fill="rgba(46, 160, 67, 0.15)" stroke="#56d364" stroke-width="1" />
+                        <text x="290" y="85" fill="#56d364" font-family="'IBM Plex Mono', monospace" font-size="9.5" font-weight="600">Row 1: 100</text>
+                        <text x="290" y="110" fill="#56d364" font-family="'IBM Plex Mono', monospace" font-size="9.5" font-weight="600">Row 2: 250</text>
+                        <text x="290" y="135" fill="#56d364" font-family="'IBM Plex Mono', monospace" font-size="9.5" font-weight="600">Row 3: 50</text>
+                        <text x="290" y="160" fill="#56d364" font-family="'IBM Plex Mono', monospace" font-size="9.5" font-weight="600">Row 4: 900</text>
+
+                        <!-- Aggregation Query Read Path Solution -->
+                        <path d="M 375 240 L 375 190" fill="none" stroke="#56d364" stroke-width="2.5" marker-end="url(#scan-arrow)" />
+                        <text x="285" y="210" fill="#56d364" font-family="'Inter', sans-serif" font-size="10" font-weight="600">SUM(balance) Scan</text>
+                        <text x="285" y="225" fill="#8b949e" font-family="'Inter', sans-serif" font-size="8.5" font-style="italic">100% I/O Efficiency</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-pair">
+            <div class="block problem">
+                <span class="block-title">OLAP on Row-Oriented: The I/O Bottleneck</span>
+                <p>When running data-warehousing queries (e.g., aggregations, averages, grouping) on transactional row databases, physical performance degrades catastrophically:</p>
+                <ul>
+                    <li><strong>Massive I/O Wastage:</strong> If you only need to calculate average product prices across 50,000,000 rows, the disk controller must pull every column (user IDs, long string descriptions, seller names, timestamps) into the buffer pool. 90% of the loaded bytes are thrown away instantly.</li>
+                    <li><strong>Buffer Pool Pollution:</strong> Loading heavy rows to scan just one column evicts valuable transactional pages from RAM cache, slowing down unrelated operations across the application.</li>
+                </ul>
+            </div>
+
+            <div class="block solution">
+                <span class="block-title">OLAP on Columnar: The Speed &amp; Compression Cure</span>
+                <p>Column-oriented architectures solve data aggregation constraints with absolute disk-level optimization:</p>
+                <ul>
+                    <li><strong>Direct Sector Sweeps:</strong> If you query a single column, the storage engine calculates the exact sector range of that column's files and reads them sequentially. Other column files are never touched.</li>
+                    <li><strong>Ultra-High Data Compression:</strong> Because an entire page is filled with the same data type (e.g., all 64-bit timestamps or float balances), databases can compress data exceptionally well. Using techniques like <strong>Run-Length Encoding (RLE)</strong> (storing `[100, 100, 100]` as `3x100`) or <strong>Delta Encoding</strong>, storage size footprint shrinks up to 90%.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="grid-pair">
+            <div class="block problem">
+                <span class="block-title">The Columnar Penalty: Row Reconstruction &amp; Inserts</span>
+                <p>Columnar databases are optimized exclusively for reads. When targeted with writes or transactional lookups, they face extreme performance deficits:</p>
+                <ul>
+                    <li><strong>The Row Reconstruction Tax:</strong> If you execute <code>SELECT * FROM users WHERE id = 42</code>, the engine must open separate physical files/pages for each column, read slot 42 in each file, and stitch the data back together in RAM. This causes heavy random seek latencies.</li>
+                    <li><strong>Fragmented Writes:</strong> Inserting or updating a single row requires modifying dozens of separate column files simultaneously, causing heavy disk write overhead.</li>
+                </ul>
+            </div>
+
+            <div class="block solution">
+                <span class="block-title">The OLTP Solution: Continuous Append with Page Fills</span>
+                <p>To support high-throughput, concurrent writes, OLTP engines keep rows contiguous within pages:</p>
+                <ul>
+                    <li><strong>Atomic Appends:</strong> Inserting a row is highly efficient because all columns are bundled together and written inside a single physical page. Only one disk append is executed.</li>
+                    <li><strong>Point-Lookups:</strong> Traversing an index lands you directly on the Slotted Page where all row columns reside contiguously, ensuring sub-millisecond lookups.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="block info">
+            <span class="block-title">The Workload Division: OLTP vs. OLAP</span>
+            <p>Because of these physical storage layouts, the industry divides engineering workloads cleanly between storage models:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Storage Metric</th>
+                        <th>Row-Oriented Layout (OLTP)</th>
+                        <th>Columnar Layout (OLAP)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Primary Workload</strong></td>
+                        <td>Online Transaction Processing (high-throughput API writes, updates, lookups).</td>
+                        <td>Online Analytical Processing (BI reports, aggregate statistics, data warehousing).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Query Pattern</strong></td>
+                        <td>Returns few rows, but reads many/all columns per row.</td>
+                        <td>Returns millions of rows, but reads only a few columns per query.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Compression</strong></td>
+                        <td>Moderate (due to high variation of adjacent data types within pages).</td>
+                        <td>Extremely high (consecutive identical data types enable premium RLE/Delta compression).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Write Characteristics</strong></td>
+                        <td>Highly efficient single-row INSERTs and updates. No page-scattering.</td>
+                        <td>Very slow single-row writes. Optimized for massive batch file uploads.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database Systems</strong></td>
+                        <td>PostgreSQL, MySQL, SQLite, SQL Server.</td>
+                        <td>ClickHouse, Snowflake, Google BigQuery, Amazon Redshift.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>
