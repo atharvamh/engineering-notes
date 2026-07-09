@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentals of Database Engineering</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --text-bright: #f0f6fc;
+            --text-muted: #8b949e;
+            --accent-color: #58a6ff;
+            --border-color: #21262d;
+            --code-bg: #161b22;
+
+            --module1-border: #388bfd;
+            --module1-text: #79c0ff;
+            --module1-bg: rgba(56, 139, 253, 0.05);
+
+            --module2-border: #2ea043;
+            --module2-text: #56d364;
+            --module2-bg: rgba(46, 160, 67, 0.05);
+
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-mono: 'IBM Plex Mono', Consolas, SFMono-Regular, "Liberation Mono", monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-main);
+            font-size: 15px;
+            line-height: 1.75;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* Subtle schematic grid backdrop, evoking a page/index structure */
+        .grid-backdrop {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 44px 44px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 88px 32px 72px;
+        }
+
+        .eyebrow {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 22px;
+            height: 1px;
+            background: var(--accent-color);
+        }
+
+        h1 {
+            font-size: 38px;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: -0.02em;
+            margin: 0 0 18px;
+            line-height: 1.2;
+        }
+
+        .lede {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 620px;
+            margin: 0 0 56px;
+        }
+
+        .lede code {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-color);
+        }
+
+        .index-list {
+            border-top: 1px solid var(--border-color);
+        }
+
+        .entry {
+            display: grid;
+            grid-template-columns: 64px 1fr auto;
+            align-items: center;
+            gap: 24px;
+            padding: 28px 0;
+            border-bottom: 1px solid var(--border-color);
+            text-decoration: none;
+            color: inherit;
+            transition: background-color 0.15s ease;
+        }
+
+        .entry:hover {
+            background-color: rgba(255,255,255,0.015);
+        }
+
+        .entry:hover .entry-title {
+            color: var(--accent-color);
+        }
+
+        .entry:hover .go {
+            transform: translateX(4px);
+            opacity: 1;
+        }
+
+        .entry-index {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .entry-index .roman {
+            display: block;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-bright);
+            letter-spacing: 0.02em;
+            margin-bottom: 2px;
+        }
+
+        .entry-body { min-width: 0; }
+
+        .entry-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin: 0 0 6px;
+            transition: color 0.15s ease;
+        }
+
+        .entry-desc {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin: 0 0 12px;
+            max-width: 520px;
+        }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .entry.mod1 .tag { color: var(--module1-text); background: var(--module1-bg); border: 1px solid rgba(56, 139, 253, 0.3); }
+        .entry.mod2 .tag { color: var(--module2-text); background: var(--module2-bg); border: 1px solid rgba(46, 160, 67, 0.3); }
+
+        .go {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-muted);
+            opacity: 0.6;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            white-space: nowrap;
+        }
+
+        footer {
+            margin-top: 56px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--border-color);
+        }
+
+        footer a:hover {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        @media (max-width: 620px) {
+            .wrap { padding: 56px 20px 48px; }
+            h1 { font-size: 30px; }
+            .entry {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .entry-index .roman { font-size: 16px; }
+            .go { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="grid-backdrop"></div>
+
+<div class="wrap">
+    <div class="eyebrow">Notebook Index</div>
+    <h1>Fundamentals of Database Engineering</h1>
+
+    <div class="index-list">
+        <a class="entry mod1" href="transactions-and-concurrency.html">
+            <div class="entry-index">
+                <span class="roman">I</span>
+            </div>
+            <div class="entry-body">
+                <p class="entry-title">Transactions &amp; Concurrency</p>
+                <p class="entry-desc">ACID guarantees, durability &amp; recovery, isolation levels, MVCC internals, and the anomalies that show up when transactions run side by side.</p>
+                <div class="tag-row">
+                    <span class="tag">Transactions &amp; ACID</span>
+                    <span class="tag">Concurrency &amp; Isolation</span>
+                </div>
+            </div>
+        </a>
+
+        <a class="entry mod2" href="storage-internals-and-indexing.html">
+            <div class="entry-index">
+                <span class="roman">II</span>
+            </div>
+            <div class="entry-body">
+                <p class="entry-title">Storage Internals &amp; Indexing</p>
+                <p class="entry-desc">Table &amp; heap internals, B-Tree indexing, clustered vs. heap tables, and row-oriented vs. columnar storage for OLTP and OLAP workloads.</p>
+                <div class="tag-row">
+                    <span class="tag">Storage Internals</span>
+                    <span class="tag">Indexing &amp; Engine</span>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>
