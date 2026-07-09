@@ -212,6 +212,26 @@
             gap: 12px;
         }
 
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.15s ease, transform 0.15s ease;
+        }
+        
+        .back-link:hover {
+            color: var(--accent-color);
+            transform: translateX(-3px);
+        }
+
         footer a {
             color: var(--text-muted);
             text-decoration: none;
@@ -240,7 +260,7 @@
 <div class="grid-backdrop"></div>
 
 <div class="wrap">
-    <div class="eyebrow">Notebook Index</div>
+    <a class="back-link" href="index.html">&larr; Back</a>
     <h1>Fundamentals of Database Engineering</h1>
 
     <div class="index-list">
