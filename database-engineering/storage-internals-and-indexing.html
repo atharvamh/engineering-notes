@@ -686,8 +686,8 @@
             <span class="block-title">Why Databases Avoid Binary Search Trees (BST)</span>
             <p>Why don't database engines use simple Binary Search Trees (BST) or Red-Black Trees? The reasons are purely physical:</p>
             <ul>
-                <li><strong>Tree Depth &amp; Disk Spanning:</strong> A BST has a branching factor of at most $2$. To index $1,000,000$ rows, a BST requires a depth of $\log_2(1,000,000) \approx 20$ levels. Since each parent-child node connection in memory could point to a completely different page on disk, finding a single key would require $20$ random disk reads.</li>
-                <li><strong>Lack of Page Alignment:</strong> BST nodes are too small. They store only one key and two child pointers, failing to utilize the $8\text{ KB}$ physical page capacity, which leads to massive memory fragmentation.</li>
+                <li><strong>Tree Depth &amp; Disk Spanning:</strong> A BST has a branching factor of at most 2. To index 1,000,000 rows, a BST requires a depth of log_2(1,000,000) = approx 20 levels. Since each parent-child node connection in memory could point to a completely different page on disk, finding a single key would require 20 random disk reads.</li>
+                <li><strong>Lack of Page Alignment:</strong> BST nodes are too small. They store only one key and two child pointers, failing to utilize the 8\text{ KB} physical page capacity, which leads to massive memory fragmentation.</li>
             </ul>
         </div>
 
@@ -695,10 +695,10 @@
             <span class="block-title">The Solution: The B+Tree (Shallow Depth &amp; High Fan-out)</span>
             <p>A B+Tree is a self-balancing search tree designed to handle large page-aligned file blocks. It optimizes performance using two distinct node types:</p>
             <ul>
-                <li><strong>Internal Nodes (Routing Guides):</strong> These contain only search keys and physical child pointers. They contain <em>no actual data or row pointer payloads</em>. This maximizes the branching factor (fan-out). If a routing page holds 500 keys, its branching factor is $B = 500$.</li>
+                <li><strong>Internal Nodes (Routing Guides):</strong> These contain only search keys and physical child pointers. They contain <em>no actual data or row pointer payloads</em>. This maximizes the branching factor (fan-out). If a routing page holds 500 keys, its branching factor is B = 500.</li>
                 <li><strong>Leaf Nodes (Data Anchors):</strong> These store the actual index key values along with their corresponding physical Heap <strong>Row IDs</strong> (or the actual table rows in a clustered InnoDB table).</li>
             </ul>
-            <p style="margin-top: 10px; margin-bottom: 0;"><strong>The Advantage:</strong> By storing all record payloads in the leaf nodes, internal nodes stay lightweight, enabling a massive fan-out. A B+Tree with a branching factor of $B = 500$ can index millions of keys in just $3$ levels—reducing physical disk page lookups to a maximum of $3$ hops!</p>
+            <p style="margin-top: 10px; margin-bottom: 0;"><strong>The Advantage:</strong> By storing all record payloads in the leaf nodes, internal nodes stay lightweight, enabling a massive fan-out. A B+Tree with a branching factor of B = 500 can index millions of keys in just 3 levels—reducing physical disk page lookups to a maximum of 3 hops!</p>
         </div>
 
         <div class="block info">
