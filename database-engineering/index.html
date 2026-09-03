@@ -114,23 +114,7 @@ h2.notebook-title{
   font-size:15px;
   color:var(--ink-soft);
   max-width:56ch;
-  margin:0 0 14px;
-}
-.notebook-meta{
-  font-size:13px;
-  color:var(--ink-faint);
-}
-.notebook-meta .status{
-  color:var(--read);
-  font-weight:500;
-}
-
-footer.site-footer{
-  margin-top:56px;
-  padding-top:22px;
-  border-top:1px solid var(--line);
-  font-size:13px;
-  color:var(--ink-faint);
+  margin:0;
 }
 
 @media (max-width:560px){
@@ -156,7 +140,6 @@ footer.site-footer{
       <div class="notebook-body">
         <h2 class="notebook-title">ACID, Transactions &amp; Concurrency</h2>
         <p class="notebook-desc">How a database keeps its promises when things crash, and how it keeps those promises without making every transaction wait in line — ACID guarantees, durability &amp; recovery, isolation levels, MVCC internals, and the read anomalies that surface when transactions run side by side.</p>
-        <p class="notebook-meta">9 sections &nbsp;·&nbsp; <span class="status">Complete</span></p>
       </div>
     </a>
 
@@ -165,15 +148,10 @@ footer.site-footer{
       <div class="notebook-body">
         <h2 class="notebook-title">Storage Internals &amp; Indexing</h2>
         <p class="notebook-desc">How a table's rows actually sit on disk, why B+Trees won out over every other search tree, and why a single choice of primary key can make or break write throughput — pages, heaps, slotted page layout, clustered vs. heap tables, and row-oriented vs. columnar storage.</p>
-        <p class="notebook-meta">4 sections &nbsp;·&nbsp; <span class="status">Complete</span></p>
       </div>
     </a>
 
   </div>
-
-  <footer class="site-footer">
-    <p>Notes written up while studying <em>Fundamentals of Database Engineering</em> by Hussein Nasser (Udemy).</p>
-  </footer>
 
 </div>
 </body>
