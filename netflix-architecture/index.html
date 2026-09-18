@@ -84,14 +84,22 @@
     color: var(--ink);
     line-height: 1.2;
   }
-  code, .mono, .tag, .step-label, nav a .num {
+  code, .mono, .step-label, nav a .num {
     font-family: 'IBM Plex Mono', monospace;
+  }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--code-bg);
+    padding: 0.1em 0.5em;
+    border-radius: 3px;
+    font-size: 0.9em;
+    white-space: nowrap;
   }
   a { color: var(--control); }
 
   .shell {
     display: grid;
-    grid-template-columns: 250px minmax(0, 1fr);
+    grid-template-columns: 290px minmax(0, 1fr);
     max-width: 1180px;
     margin: 0 auto;
   }
@@ -163,7 +171,10 @@
     border-left: 2px solid transparent;
     color: var(--ink-soft);
     text-decoration: none;
-    font-size: 0.92rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .toc a.done { color: var(--ink); border-left-color: var(--control); }
   .toc a.pending {
@@ -188,6 +199,14 @@
   }
   .chapter h2 { font-size: 2.1rem; margin: 0 0 1rem; }
   .chapter h3 { font-size: 1.4rem; margin: 1.8rem 0 0.6rem; }
+  .chapter p.subhead {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-faint);
+    margin: 1.6rem 0 0.6rem;
+    text-transform: uppercase;
+  }
   .chapter p { margin: 0 0 1.1rem; color: var(--ink); }
   .chapter ul, .chapter ol.steps { margin: 0 0 1.2rem; padding-left: 1.3rem; }
   .chapter li { margin-bottom: 0.5rem; }
@@ -393,12 +412,32 @@
     background: var(--paper-raised);
     border: 1px solid var(--rule);
     border-radius: 10px;
-    max-width: 720px;
+    max-width: 1200px;
     width: 100%;
-    max-height: 85vh;
+    max-height: 92vh;
     overflow-y: auto;
     padding: 1.6rem 1.8rem;
     box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .log-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.6rem;
+    align-items: start;
+  }
+  .log-col-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.6rem;
+  }
+  .log-left { max-height: 68vh; overflow-y: auto; padding-right: 0.5rem; }
+  .log-right { max-height: 68vh; overflow-y: auto; }
+  .jkey { color: var(--data); font-weight: 500; }
+  @media (max-width: 800px) {
+    .log-modal-grid { grid-template-columns: 1fr; }
   }
   .log-modal-header {
     display: flex;
@@ -450,21 +489,8 @@
     color: var(--ink);
     margin: 0.3rem 0 0;
   }
-  .log-raw {
-    margin-top: 1.2rem;
-    border-top: 1px dashed var(--rule);
-    padding-top: 1rem;
-  }
-  .log-raw summary {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--ink-faint);
-    cursor: pointer;
-  }
   .log-raw pre {
-    margin-top: 0.8rem;
-    max-height: 380px;
-    overflow: auto;
+    margin: 0;
     background: var(--code-bg);
     border: 1px solid var(--rule);
     border-radius: 6px;
@@ -574,11 +600,17 @@
 
       <div class="callout">
         <span class="label">more specific detail — widely reported, not Netflix's own official wording</span>
-        <p>A few sharper details show up consistently across independent tech-industry retrospectives, not confirmed in Netflix's own official statement: the database in question was Netflix's primary <strong>Oracle</strong> cluster, and the actual trigger traces back further than "database corruption" alone — a <strong>firmware update pushed to a disk array</strong> is what corrupted it. One detailed retrospective, based on direct interviews with Netflix's own cloud engineering leadership, quotes their reaction as wanting to "rethink this completely, go back to first principles" rather than patch around the problem — which is the actual origin of the failure-embracing philosophy that Chapter 7's Chaos Monkey and ChAP are built on, years later.</p>
+        <p>Widely reported, not from Netflix's own statement: the database was a primary <strong>Oracle</strong> cluster, corrupted by a <strong>disk-array firmware update</strong>. Netflix's own cloud leadership reportedly reacted by wanting to "rethink this completely, go back to first principles" — the actual origin of the failure-embracing philosophy behind Chapter 7's Chaos Monkey and ChAP.</p>
       </div>
 
-      <p>Separately, the arXiv chaos-engineering paper cited below (co-authored by Netflix engineers) describes control-plane services running as replicated virtual machines across three AWS regions — Netflix's own TechBlog names these as <strong>US-East-1</strong> (Virginia), <strong>US-West-2</strong> (Oregon), and <strong>EU-West-1</strong> (Ireland), with a real example of traffic being steered between all three during an actual production issue. That figure appears to be dated, though: a current AWS case study on Netflix states it now operates across <strong>four</strong> AWS regions, without naming the fourth. Treat "three" as accurate as of the cited sources' publication, not necessarily the present-day count.</p>
-      <p>Open Connect is a distinct program with its own, separately-documented starting point: the initiative began in 2011, for reasons covered in the next chapter. I'm not aware of a source that directly ties the 2008 incident to the decision to build Open Connect specifically — so I'm not asserting that connection here, even though the two are often told as one continuous story.</p>
+      <p>Control-plane services run as replicated VMs across three AWS regions:</p>
+      <ul>
+        <li><strong>US-East-1</strong> (Virginia)</li>
+        <li><strong>US-West-2</strong> (Oregon)</li>
+        <li><strong>EU-West-1</strong> (Ireland)</li>
+      </ul>
+      <p>Netflix has shown live traffic steering between all three during a real incident. A current AWS case study puts the count at <strong>four</strong> regions today, fourth unnamed — treat "three" as dated, not current.</p>
+      <p>Open Connect began separately in 2011 (reasons in the next chapter) — no source ties it directly to the 2008 incident, despite the two often being told as one story.</p>
 
       <div class="refs">
         <span class="label">references</span>
@@ -601,7 +633,7 @@
       <p>Most CDNs are demand-driven: a request comes in, if the edge doesn't have the content it's fetched from origin and cached for next time. Open Connect flips that. Netflix can predict with high confidence what will be watched, where, and when — so instead of waiting for cache misses, it <strong>pushes</strong> content out to edge appliances ahead of demand, mostly during off-peak overnight windows. That's the core design bet the Open Connect team describes for the whole program.</p>
 
       <h3>The appliance: OCA</h3>
-      <p>The building block is the <span class="tag">Open Connect Appliance</span> (<span class="tag">OCA</span>) — purpose-built servers whose only job is storing encoded video/image files and serving them over HTTP/HTTPS. Deliberately, OCAs hold <em>no</em> user data: no viewing history, no DRM state, no account info. That separation matters architecturally — it means the data plane can be treated as disposable, replaceable, cache-only infrastructure, while every piece of information that's actually sensitive stays in the control plane where the consistency and access-control guarantees live.</p>
+      <p>The building block is the <span class="tag">Open Connect Appliance</span> (<span class="tag">OCA</span>) — purpose-built servers whose only job is storing encoded, DRM-encrypted video/image files and serving them over HTTP/HTTPS (Chapter 3 covers the encryption itself). Deliberately, OCAs hold <em>no</em> user data: no viewing history, no DRM state, no account info. That separation matters architecturally — it means the data plane can be treated as disposable, replaceable, cache-only infrastructure, while every piece of information that's actually sensitive stays in the control plane where the consistency and access-control guarantees live.</p>
 
       <div class="diagram-wrap">
         <svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg">
@@ -627,7 +659,7 @@
           <text x="150" y="202" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="var(--ink)">operating system</text>
 
           <rect x="270" y="166" width="200" height="46" rx="6" fill="var(--control-soft)" stroke="var(--control)" stroke-width="1.1"/>
-          <text x="370" y="188" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--control)">NGINX</text>
+          <text x="370" y="188" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--control)">freenginx</text>
           <text x="370" y="202" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="var(--ink)">serves content over HTTP/HTTPS</text>
 
           <rect x="490" y="166" width="200" height="46" rx="6" fill="var(--control-soft)" stroke="var(--control)" stroke-width="1.1"/>
@@ -773,14 +805,17 @@
         <p>The "routes" an OCA reports are learned via <strong>BGP (Border Gateway Protocol)</strong> — the protocol networks use to advertise which IP address ranges are reachable through them. Each OCA holds a BGP session with the router it's connected to at the ISP, and through that session learns which of the ISP's customer IP prefixes it's allowed to serve. An OCA will only serve client IPs that have actually been advertised to it over BGP — so the ISP, not Netflix, controls which of its own subscribers get routed to a given appliance, simply by choosing what to announce.</p>
       </div>
 
-      <p>The important design detail is step 5: once the client has its signed URL, the video bytes flow directly from the OCA to the device. The control plane is never in that path again for this session — it already did its job (auth, licensing, picking the right server) up front. That's what lets the data plane scale independently of API traffic.</p>
+      <div class="callout">
+        <span class="label">the important design detail</span>
+        <p>Step 5: once the client has its signed URL, the video bytes flow directly from the OCA to the device. The control plane is never in that path again for this session — it already did its job (auth, licensing, picking the right server) up front. That's what lets the data plane scale independently of API traffic.</p>
+      </div>
 
       <h3>Nightly fill: prediction instead of reaction</h3>
       <p>Because viewing is predictable in aggregate, Open Connect pushes most content updates to OCAs during off-peak hours using dedicated, configurable fill windows — rather than waiting for real-time cache misses under peak load. OCAs can even pull updates from <em>each other</em> instead of all hitting origin, which further reduces backbone traffic. Popularity-prediction models decide what to place where, balancing offload efficiency against churn (you don't want to be constantly rewriting an appliance's disk).</p>
 
       <div class="callout">
         <span class="label">not an eventing system — a scheduled, predictive pull</span>
-        <p>Worth being precise about the mechanism here, since "pushes content" can suggest a real-time, event-driven pipeline. What's actually documented is closer to scheduled batch distribution: the control plane decides <em>what</em> should go <em>where</em>, using popularity-prediction models applied ahead of time — not a live trigger firing per event. Then, during the configured fill window, OCAs download those files on that schedule, and can fetch updates from each other rather than every appliance hitting origin separately. Netflix hasn't published details of a message-queue or pub/sub layer underneath this, so treat the internals below "scheduled, predictive, peer-assisted" as undocumented rather than assumed.</p>
+        <p>Not real-time/event-driven, despite "pushes content." What's documented: the control plane decides what goes where using popularity predictions made ahead of time, then OCAs download on the scheduled fill window — pulling from each other where possible, not from origin every time. Anything below "scheduled, predictive, peer-assisted" (e.g. a message queue) is undocumented.</p>
       </div>
 
       <div class="callout">
@@ -830,7 +865,7 @@
       <p>When a device starts playback, it's making manifest and license requests against a specific backend service Netflix has named in public writing: <code class="inline">PlayAPI</code>. Netflix engineers describe it plainly as <em>"a critical backend service on the video streaming control plane, responsible for handling device initiated manifest and license requests necessary to start playback."</em> It's also, by their own account, a service that has had to survive real load spikes — one incident they describe involved a 12x spike in pre-fetch requests per second from Android devices after an infrastructure outage, which is a useful concrete detail if the discussion turns to "what actually goes wrong here."</p>
 
       <h3>The Steering Service picks where the bytes will come from</h3>
-      <p>Separately, a <code class="inline">Steering Service</code> computes what they call a <strong>proximity rank</strong> — a ranked list of Open Connect sites for each client request — and logs that decision as a "steering playback manifest." Once the client actually connects to an OCA and starts streaming, the OCA itself logs the session (files streamed, bytes transferred), and those two logs get joined downstream for content-delivery analytics. This is the clearest documented link between the control-plane decision (which OCA?) and the data-plane outcome (what did the client actually stream from?).</p>
+      <p>Separately, a <code class="inline">Steering Service</code> computes what they call a <strong>proximity rank</strong> — a ranked list of Open Connect sites for each client request — and logs that decision as a "steering playback manifest." The OCA keeps its own log too, once the client actually connects and starts streaming — which files, how many bytes. Downstream, those two logs get joined into one record, giving a direct link between the control plane's decision (which OCA it picked) and the data plane's outcome (what the client actually streamed from) — the clearest documented tie between the two.</p>
 
       <div class="diagram-wrap">
         <svg viewBox="0 -25 780 345" xmlns="http://www.w3.org/2000/svg">
@@ -893,23 +928,29 @@
         <div class="diagram-caption">named, documented services behind the generic "steering" step from chapter 2 — several OCAs are eligible, only the top-ranked one is used</div>
       </div>
 
-      <p>Worth being clear about what "fallback" means here: Netflix's documentation confirms the client receives a <em>ranked list</em> of OCA URLs, not just one — but it doesn't spell out the exact client-side logic for when a lower-ranked OCA actually gets used (e.g., only on a failed connection, or under some other condition). Treat "held as fallback" as the documented existence of a ranked list, not a confirmed retry algorithm.</p>
+      <p>Netflix confirms the client gets a <em>ranked list</em> of OCA URLs, not just one — but not the exact logic for when a lower-ranked one gets used. Treat "fallback" as a documented list, not a confirmed retry algorithm.</p>
 
       <h3>What's inside the manifest</h3>
-      <p>Documented in the context of Netflix's live-streaming architecture (not confirmed identical for on-demand): the manifest is delivered from the cloud, not the CDN, so it can be personalized per device.</p>
+      <p>Documented in the context of Netflix's live-streaming architecture (not confirmed identical for on-demand): the manifest is delivered from the cloud, not the CDN, so it can be personalized per device. Its job is broader than just video quality — it describes several independent tracks, and the client picks one from each category below.</p>
 
       <table class="field-table">
-        <tr><th>field</th><th>what it holds</th></tr>
-        <tr><td>bitrates</td><td>the set of encoding bitrates available for this playback session</td></tr>
-        <tr><td>CDN servers</td><td>the list of CDN (OCA) servers the player is allowed to request segments from</td></tr>
-        <tr><td>segment template</td><td>a formula the device uses to compute a segment's URL directly from the current time, instead of asking the server for it</td></tr>
+        <tr><th>track</th><th>field</th><th>what it holds</th></tr>
+        <tr><td>video</td><td>bitrates</td><td>the set of encoding bitrates available for this playback session</td></tr>
+        <tr><td>video</td><td>CDN servers</td><td>the list of CDN (OCA) servers the player is allowed to request segments from</td></tr>
+        <tr><td>video</td><td>segment template</td><td>a formula the device uses to compute a segment's URL directly from the current time, instead of asking the server for it</td></tr>
+        <tr><td>audio</td><td>CDN servers</td><td>same OCAs as video — <strong>confirmed by direct capture</strong>, not a video-only mechanism</td></tr>
+        <tr><td>audio</td><td>bitrate / language</td><td>its own ladder (e.g. stereo vs. 5.1), separate per language, fetched and decoded independently then synced during playback (general practice, not separately confirmed)</td></tr>
+        <tr><td>subtitles</td><td>CDN servers</td><td>same OCAs as video and audio — <strong>confirmed by direct capture</strong></td></tr>
+        <tr><td>subtitles</td><td>delivery</td><td>one complete TTML/IMSC1.1 file per request, not chunked into segments like video/audio — <strong>confirmed by direct capture</strong> (a real session's HAR file)</td></tr>
       </table>
+
+      <p>The subtitle delivery finding is worth flagging as unusually solid for this page — it's not inferred from documentation, it's a direct observation from a real session's HAR file (a browser network capture): a single request returned a complete, full-length closed-caption file (timestamps, styling, and all caption text included) rather than a segment.</p>
+
+      <p>Either way, it's the same idea as the next section, where the client also picks video quality on its own instead of asking Netflix each time: push the decision to wherever it can be made locally, without a round trip.</p>
 
       <p><strong style="color: var(--data);">Live streaming:</strong> a live stream keeps producing new segments on a steady schedule (say, one every few seconds). Without the template, the client would have to keep asking the control plane "where's the next segment?" over and over. With it, the client just does the math itself from the current time and knows the URL in advance — no extra request needed. That saves time (no waiting on a reply) and saves Netflix's servers from getting hit with those extra requests right when it's busiest, like during a big live event.</p>
 
       <p><strong style="color: var(--data);">On-demand (a movie or show):</strong> there's no wall clock to map here — the whole title is a fixed, finished asset before you ever hit play, so there's nothing "growing" in real time. The general industry pattern for this case (not something Netflix has specifically confirmed) is a template keyed to <strong>segment number</strong> instead of time — "segment 1, segment 2, segment 3..." — for the same basic reason: it's more efficient than listing every one of, say, 1,200 individual segment URLs in a two-hour movie's manifest.</p>
-
-      <p>Either way, it's the same idea as the next section, where the client also picks video quality on its own instead of asking Netflix each time: push the decision to wherever it can be made locally, without a round trip.</p>
 
       <h3>Adaptive bitrate switching happens on the client</h3>
       <p>Once playback starts, quality switching is handled by what Netflix engineers call their <strong>adaptive streaming engine</strong> — confirmed in their own writing as something they've spent years optimizing for video specifically. The stated mechanism: media is split into small chunks, each available at several quality levels, and the client-side algorithm's job is to pick the best available quality for current network conditions, chunk by chunk, aiming for the best overall playback experience even under constrained bandwidth.</p>
@@ -1576,34 +1617,39 @@
     </div>
     <p class="log-modal-sub">Trimmed from an actual Netflix playback session, captured on the page linked in Chrome's own media debugging tool.</p>
 
-    <div class="log-field">
-      <code>"key_system": "com.widevine.alpha"</code>
-      <p>Confirms Widevine specifically for this session — one of the three DRM systems from this chapter's field table.</p>
-    </div>
-    <div class="log-field">
-      <code>"use_hw_secure_codecs": false</code>
-      <p>This session is running the software decrypt path, not the hardware-secured (TEE-backed, Widevine L1) tier discussed earlier in this chapter.</p>
-    </div>
-    <div class="log-field">
-      <code>video: "encryption scheme": "CBCS"  &middot;  audio: "Unencrypted"</code>
-      <p>DRM isn't applied uniformly — only the video track was encrypted in this capture; the audio track was not.</p>
-    </div>
-    <div class="log-field">
-      <code>"info": "video stream is encrypted with clear lead"</code>
-      <p>A standard DRM/CMAF technique: the very first moment of a segment is left unencrypted so playback starts instantly, while the license request runs in parallel instead of blocking startup.</p>
-    </div>
-    <div class="log-field">
-      <code>pipeline_state: kPlaying &rarr; kSuspending &rarr; kSuspended &rarr; kResuming &rarr; kPlaying</code>
-      <p>After a pause, Chrome waits roughly 45&ndash;60 seconds, then fully tears down the decoder pipeline to save memory and battery. Resuming rebuilds it from scratch &mdash; the audio/video decoder selection logic runs again, identical to first startup.</p>
-    </div>
-    <div class="log-field">
-      <code>"video_track_selected": "unset" &rarr; "4" &rarr; "unset"</code>
-      <p>A live capture of this chapter's adaptive engine actually switching bitrate rungs mid-session &mdash; direct, real-world confirmation of the mechanism described above, not just a documented claim.</p>
-    </div>
+    <div class="log-modal-grid">
+      <div class="log-left">
+        <div class="log-col-label">Annotated fields</div>
+        <div class="log-field">
+          <code>"key_system": "com.widevine.alpha"</code>
+          <p>Confirms Widevine specifically for this session — one of the three DRM systems from this chapter's field table.</p>
+        </div>
+        <div class="log-field">
+          <code>"use_hw_secure_codecs": false</code>
+          <p>This session is running the software decrypt path, not the hardware-secured (TEE-backed, Widevine L1) tier discussed earlier in this chapter.</p>
+        </div>
+        <div class="log-field">
+          <code>video: "encryption scheme": "CBCS"  &middot;  audio: "Unencrypted"</code>
+          <p>DRM isn't applied uniformly — only the video track was encrypted in this capture; the audio track was not.</p>
+        </div>
+        <div class="log-field">
+          <code>"info": "video stream is encrypted with clear lead"</code>
+          <p>A standard DRM/CMAF technique: the very first moment of a segment is left unencrypted so playback starts instantly, while the license request runs in parallel instead of blocking startup.</p>
+        </div>
+        <div class="log-field">
+          <code>pipeline_state: kPlaying &rarr; kSuspending &rarr; kSuspended &rarr; kResuming &rarr; kPlaying</code>
+          <p>After a pause, Chrome waits roughly 45&ndash;60 seconds, then fully tears down the decoder pipeline to save memory and battery. Resuming rebuilds it from scratch &mdash; the audio/video decoder selection logic runs again, identical to first startup.</p>
+        </div>
+        <div class="log-field">
+          <code>"video_track_selected": "unset" &rarr; "4" &rarr; "unset"</code>
+          <p>A live capture of this chapter's adaptive engine actually switching bitrate rungs mid-session &mdash; direct, real-world confirmation of the mechanism described above, not just a documented claim.</p>
+        </div>
+      </div>
 
-    <details class="log-raw">
-      <summary>&#9656; full raw capture (JSON)</summary>
-      <pre>{
+      <div class="log-right">
+        <div class="log-col-label">Full raw capture (JSON)</div>
+        <div class="log-raw">
+        <pre id="raw-json-block">{
   "properties": {
     "render_id": 95,
     "player_id": 5,
@@ -1723,9 +1769,19 @@
     { "time": 226428.355, "key": "pipeline_buffering_state", "value": { "for_suspended_start": false, "state": "BUFFERING_HAVE_ENOUGH" } }
   ]
 }</pre>
-    </details>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    var el = document.getElementById('raw-json-block');
+    if (!el) return;
+    el.innerHTML = el.innerHTML.replace(/"([^"\n]+)":/g, '<span class="jkey">"$1"</span>:');
+  })();
+</script>
 
 </body>
 </html>
